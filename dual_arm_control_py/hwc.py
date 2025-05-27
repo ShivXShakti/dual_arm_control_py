@@ -16,6 +16,7 @@ class PositionCommander(Node):
         self.obj = TrajectoryGenerator()
         self.t_counter = 0.0
         self.js_prev = None
+        self.joint_state_actual = np.zeros((14,))
 
         #### hwc
         self.status = darm_msgs.msg.UiStatus()
@@ -26,20 +27,18 @@ class PositionCommander(Node):
 
 
     def timer_callback(self):
-        while(not self.joint_callback_status):
-            # print("BIHIHI")
-            time.sleep(.1)
-        while (self.joint_callback_status):
+        if not self.joint_callback_status:
+            self.get_logger().info(f"Did not receive joint states... trying again!")
+            return
+        else:
             if self.t_counter<self.obj.traj_time:
-                angle = np.zeros((14,))
-                # print(self.status.left_arm.position)
+                angle = self.joint_state_actual
                 for i in range(7):
                     angle[i] = self.status.left_arm.position[i]
                     angle[i+7] = self.status.right_arm.position[i]
                 
-                target_angle = self.obj.get_joints(self.t_counter,angle[7:14], self.obj.dh_l)
+                target_angle = self.obj.get_joints(self.t_counter, angle[7:14], self.obj.dh_l)
                 self.js_prev = target_angle
-                # print("Command publishing...")
                 uicmd_msg  = darm_msgs.msg.UiCommand()
                 uicmd_msg.developer_command.enable = True
 
@@ -71,7 +70,7 @@ class PositionCommander(Node):
                 
     def callback(self, msg):
         self.status = msg
-        self.obj.joint_states = self.status.right_arm.position
+        self.joint_state_actual = self.status.right_arm.position
         self.joint_callback_status  = True
 
 def main(args=None):
