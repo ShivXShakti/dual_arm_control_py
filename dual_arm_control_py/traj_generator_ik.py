@@ -14,6 +14,7 @@ class TrajectoryGenerator():
     def __init__(self, T_init = None, T_final=None, sampling_frequency=100, traj_time = 20, traj_type="straight", dh_l=[0.10555,0.176,0.3,0.32,0.2251]):
         self.traj_time = traj_time
         self.traj_type = traj_type
+        self.traj_status = True
         self.dh_l = dh_l
         self.sampling_frequency = sampling_frequency
         l1,l2, l3, l4, l5 = self.dh_l[0],self.dh_l[1],self.dh_l[2],self.dh_l[3],self.dh_l[4]
@@ -24,15 +25,15 @@ class TrajectoryGenerator():
                                  [0, 0, 0, 1]]) if T_init is None else T_init
         
         ## tested
-        self.T_final = np.array([[0, 0, 1, l4+l5], 
+        """self.T_final = np.array([[0, 0, 1, l4+l5], 
                                  [0, -1, 0, -0.4], 
                                  [1, 0, 0, -l3], 
-                                 [0, 0, 0, 1]]) if T_final is None else T_final
+                                 [0, 0, 0, 1]]) if T_final is None else T_final"""
         #str working
-        """self.T_final = np.array([[0, -1, 0, 0], 
+        self.T_final = np.array([[0, -1, 0, 0], 
                                  [-1, 0, 0, -l1-l2], 
                                  [0, 0, -1, -l3-l4], 
-                                 [0, 0, 0, 1]]) if T_final is None else T_final"""
+                                 [0, 0, 0, 1]]) if T_final is None else T_final
         #ee rot
         """self.T_final = np.array([[1, 0, 0, 0], 
                                  [0, 0, -1, -l1-l2-l3-l4-l5], 
@@ -462,7 +463,9 @@ class TrajectoryGenerator():
         """ Generate smooth trajectory using the exponential matrix method. """
         if t>self.traj_time:
             t = self.traj_time
-            print(f"---------------trajectory executed-----------------")
+            if self.traj_status:
+                print(f"---------------trajectory execution complete.-----------------")
+                self.traj_status = False
             return self.joint_angles_both
 
         R_init = self.T_init[:3, :3]
@@ -537,7 +540,9 @@ class TrajectoryGenerator():
         joint_angles_both = np.concatenate((joint_states_desired, joint_states_desired))
         self.joint_states_prev = joint_states_desired
         self.joint_angles_both = joint_angles_both
-        print(f"----------------------exe-----------------------------------")
+        if t==0:
+            print(f"-------------Executing trajectory-------------------")
+            print(f"Final Transformation: {self.T_final}")
         return joint_angles_both
         
     def get_joints(self, t, theta, dh_l):

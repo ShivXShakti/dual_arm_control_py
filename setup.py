@@ -17,11 +17,12 @@ setup(
     maintainer_email='kuldeeplakhansons@gmail.com',
     description='TODO: Package description',
     license='TODO: License declaration',
-    tests_require=['pytest'],
+    #tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'fpc = dual_arm_control_py.fpc:main',
             'home_fpc = dual_arm_control_py.home_fpc:main',
+            'hwc = dual_arm_control_py.hwc:main',
         ],
     },
 )
