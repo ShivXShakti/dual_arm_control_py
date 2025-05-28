@@ -31,9 +31,14 @@ class TrajectoryGenerator():
                                  [0, 0, 0, 1]]) if T_final is None else T_final"""
         #str working
         self.T_final = np.array([[0, -1, 0, 0], 
-                                 [-1, 0, 0, -l1-l2], 
+                                 [-1, 0, 0, -0.5], 
                                  [0, 0, -1, -l3-l4], 
                                  [0, 0, 0, 1]]) if T_final is None else T_final
+        #### half way st
+        """self.T_final = np.array([[0, -1, 0, 0], 
+                                 [-0.2588, 0, -0.9659, -l1-l2-l3-l4-l5+0.05], 
+                                 [0.9659, 0, -0.2588, -0.1], 
+                                 [0, 0, 0, 1]]) if T_final is None else T_final"""
         #ee rot
         """self.T_final = np.array([[1, 0, 0, 0], 
                                  [0, 0, -1, -l1-l2-l3-l4-l5], 
@@ -537,6 +542,7 @@ class TrajectoryGenerator():
         joint_states_desired = self.integrate_joint_positions(np.array(joint_states_dot_inst).flatten(), self.joint_states_prev, 1/self.sampling_frequency)
         # if t>self.traj_time:
         #     joint_states_desired = theta
+        #left_js_desired = np.array([-joint_states_desired[0], -joint_states_desired[1], -joint_states_desired[2], -joint_states_desired[3], -joint_states_desired[4], -joint_states_desired[5], -joint_states_desired[6]])
         joint_angles_both = np.concatenate((joint_states_desired, joint_states_desired))
         self.joint_states_prev = joint_states_desired
         self.joint_angles_both = joint_angles_both
