@@ -2,7 +2,8 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray
 import math
-from dual_arm_control_py.traj_generator_ik import TrajectoryGenerator
+from dual_arm_control_py.traj_generator_ik_with_nullspaceconstraints import TrajectoryGenerator
+#from dual_arm_control_py.traj_generator_ik import TrajectoryGenerator
 from sensor_msgs.msg import JointState
 import numpy as np
 import pandas as pd

@@ -1,7 +1,8 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray
-from dual_arm_control_py.traj_generator_ik import TrajectoryGenerator
+#from dual_arm_control_py.traj_generator_ik import TrajectoryGenerator
+from dual_arm_control_py.traj_generator_ik_with_nullspaceconstraints import TrajectoryGenerator
 from sensor_msgs.msg import JointState
 import darm_msgs.msg
 import numpy as np
@@ -32,15 +33,7 @@ class PositionCommander(Node):
             return
         else:
             if self.t_counter<self.obj.traj_time:
-                angle = self.joint_state_actual
-                #print(f"###################angles: {angle}")
-                #self.get_logger().info(f"left arm js actual: {self.status.left_arm.position[6]},   right arm js actual: {self.status.right_arm.position[6]}")
-                """for i in range(7):
-                    print(f"in llop store")
-                    angle[i] = self.status.left_arm.position[i]
-                    angle[i+7] = self.status.right_arm.position[i]
-                    self.get_logger().info(f"left arm js actual: {angle[i]},   right arm js actual: {angle[i+7]}")"""
-                
+                angle = self.joint_state_actual        
                 target_angle = self.obj.get_joints(self.t_counter, angle[7:14], self.obj.dh_l)
                 self.js_prev = target_angle
                 uicmd_msg  = darm_msgs.msg.UiCommand()
@@ -68,16 +61,15 @@ class PositionCommander(Node):
                         dmsg.position = 0.0
                     dmsg.velocity = 0.0
                     uicmd_msg.developer_command.command.append(dmsg)
-                self.get_logger().info(f"---------Execution completed.-------")
                 self.pub.publish(uicmd_msg)
-
+                if self.joint_callback_status:
+                    self.get_logger().info(f"---------Execution completed.-------")
+                    self.joint_callback_status  = False
+                
                 
     def callback(self, msg):
         self.status = msg
-        #self.joint_state_actual_r = self.status.right_arm.position
-        #self.joint_state_actual_l = self.status.left_arm.position
         self.joint_state_actual = np.concatenate((self.status.left_arm.position, self.status.right_arm.position))
-        #self.get_logger().info(f"js actual: {self.joint_state_actual}")
         self.joint_callback_status  = True
 
 def main(args=None):

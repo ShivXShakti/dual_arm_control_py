@@ -24,6 +24,10 @@ setup(
             'home_fpc = dual_arm_control_py.home_fpc:main',
             'hwc = dual_arm_control_py.hwc:main',
             'js_sub = dual_arm_control_py.js_sub:main',
+            'gripper_control_effort = dual_arm_control_py.gripper_control_effort:main',
+            'gripper_control_position = dual_arm_control_py.gripper_control_position:main',
+            'gripper_hwc = dual_arm_control_py.gripper_hwc:main',
+            'gripper_test = dual_arm_control_py.gripper_test:main',
         ],
     },
 )
