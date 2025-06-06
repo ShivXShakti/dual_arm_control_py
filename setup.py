@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'fpc = dual_arm_control_py.fpc:main',
+            'fpc_home = dual_arm_control_py.fpc_home:main',
             'home_fpc = dual_arm_control_py.home_fpc:main',
             'hwc = dual_arm_control_py.hwc:main',
             'hwc_test = dual_arm_control_py.hwc_test:main',
@@ -29,6 +30,7 @@ setup(
             'gripper_control_position = dual_arm_control_py.gripper_control_position:main',
             'gripper_hwc = dual_arm_control_py.gripper_hwc:main',
             'gripper_test = dual_arm_control_py.gripper_test:main',
+            'timer_test = dual_arm_control_py.timer_test:main',
         ],
     },
 )
