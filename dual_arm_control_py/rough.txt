@@ -1,0 +1,41 @@
+ros2 topic pub /test_topic std_msgs/msg/String "{data: 'Hello from Orin'}"
+sudo ufw allow 7400:7600/udp
+sudo ufw allow 7400:7600/tcp
+export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+
+
+check status:
+sudo ufw status numbered
+
+
+remove rules:
+sudo ufw delete allow 7400:7600/udp
+sudo ufw delete allow 7400:7600/tcp
+
+
+
+allow ssh:
+sudo ufw allow ssh
+sudo ufw allow 22/tcp
+
+sudo ufw status
+
+
+#############
+If SSH is not allowed before enabling UFW, and UFW is active, you may lock yourself out of the robot via SSH. So:
+
+    If UFW is already active, add the SSH rule before enabling it.
+
+    If it's not yet active, set the SSH rule first, then enable UFW safely:
+
+sudo ufw allow ssh
+
+
+
+#### ros2 comminication
+export ROS_LOCALHOST_ONLY=0
+export ROS_DOMAIN_ID=27
+export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+
+
+

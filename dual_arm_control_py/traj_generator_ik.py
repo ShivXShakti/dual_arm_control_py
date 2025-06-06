@@ -25,15 +25,15 @@ class TrajectoryGenerator():
                                  [0, 0, 0, 1]]) if T_init is None else T_init
         
         ## tested
-        """self.T_final = np.array([[0, 0, 1, l4+l5], 
+        self.T_final = np.array([[0, 0, 1, l4+l5], 
                                  [0, -1, 0, -0.4], 
                                  [1, 0, 0, -l3], 
-                                 [0, 0, 0, 1]]) if T_final is None else T_final"""
+                                 [0, 0, 0, 1]]) if T_final is None else T_final
         #str working
-        self.T_final = np.array([[0, -1, 0, 0], 
+        """self.T_final = np.array([[0, -1, 0, 0], 
                                  [-1, 0, 0, -0.5], 
                                  [0, 0, -1, -l3-l4], 
-                                 [0, 0, 0, 1]]) if T_final is None else T_final
+                                 [0, 0, 0, 1]]) if T_final is None else T_final"""
         #### half way st
         """self.T_final = np.array([[0, -1, 0, 0], 
                                  [-0.2588, 0, -0.9659, -l1-l2-l3-l4-l5+0.05], 

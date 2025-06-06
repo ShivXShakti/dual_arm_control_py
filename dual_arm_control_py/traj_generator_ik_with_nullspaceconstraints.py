@@ -19,6 +19,10 @@ class TrajectoryGenerator():
         self.sampling_frequency = sampling_frequency
         l1,l2, l3, l4, l5 = self.dh_l[0],self.dh_l[1],self.dh_l[2],self.dh_l[3],self.dh_l[4]
 
+        ##### trajectory flags
+        self.grip_reach_f = False
+        self.put_reach_f = False
+
         #### null space
         self.max_joints_limit = np.array([3.14,1.56,3.141,2.446,3.141,1.306,6.28,3.14,1.56,3.141,2.446,3.141,1.306,6.28])
         self.min_joints_limit = np.array([-3.141,-1.56,-3.141,-1.365,-3.141,-1.306,-6.28,-3.141,-1.56,-3.141,-1.365,-3.141,-1.306,-6.28])
