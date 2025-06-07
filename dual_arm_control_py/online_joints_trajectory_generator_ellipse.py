@@ -11,7 +11,8 @@ import pandas as pd
 
 
 class TrajectoryGenerator():
-    def __init__(self, sampling_frequency=100, dh_l=[0.10555,0.176,0.3,0.32,0.2251]):
+    def __init__(self, sampling_frequency=100, traj_time = 20, dh_l=[0.10555,0.176,0.3,0.32,0.2251]):
+        self.traj_time = traj_time
         self.traj_status = True
         self.dh_l = dh_l
         self.sampling_frequency = sampling_frequency
@@ -357,21 +358,33 @@ class TrajectoryGenerator():
         return np.concatenate((angles, position)), T
 
 
-    def joints_trajectory(self, t, traj_time, theta, dh_l, T_init, T_final):
+    def joints_trajectory(self, t, theta, dh_l, T_init, T_final):
         """ Generate smooth trajectory using the exponential matrix method. """
-        if t>traj_time:
-            t = traj_time
+        if t>self.traj_time:
+            t = self.traj_time
             if self.traj_status:
                 print(f"---------------trajectory execution complete.-----------------")
                 self.traj_status = False
             return self.joint_angles_both
 
-        R_init = T_init[:3, :3]
-        R_final = T_final[:3, :3]
-        position_init = T_init[:3, 3]
-        position_final = T_final[:3, 3]
-        s = 10*(t/traj_time)**3-15*(t/traj_time)**4+6*(t/traj_time)**5
-        position_instant = position_init + s * (position_final - position_init)
+        if t<self.traj_time/2:
+            R_init = T_init[:3, :3]
+            R_final = T_final[:3, :3]
+            position_init = T_init[:3, 3]
+            position_final = T_final[:3, 3]
+            s = 10*(t/(self.traj_time/2))**3-15*(t/(self.traj_time/2))**4+6*(t/(self.traj_time/2))**5
+            position_instant = position_init + s * (position_final - position_init)
+        else:
+            R_init = T_final[:3, :3]
+            R_final = T_final[:3, :3]
+            position_init = T_final[:3, 3]
+            s = 10*((t-(self.traj_time/2))/(self.traj_time/2))**3-15*((t-(self.traj_time/2))/(self.traj_time/2))**4+6*((t-(self.traj_time/2))/(self.traj_time/2))**5
+            a = 0.3 #major
+            b = 0.1 #minor
+            x = position_init[0]
+            y = position_init[1] + a*(np.cos(2*np.pi*s)-1)
+            z = position_init[2] + b*(np.sin(2*np.pi*s)-1)
+            position_instant = np.array([x,y,z])
 
         if self.R_prev is None:
                 self.R_prev = R_init
@@ -427,8 +440,8 @@ class TrajectoryGenerator():
             print(f"Final Transformation: {T_final}")
         return joint_angles_both
         
-    def get_joints(self, t, traj_time, theta, dh_l, T_init, T_final):
-        return self.joints_trajectory(t, traj_time, theta, dh_l, T_init, T_final)
+    def get_joints(self, t, theta, dh_l, T_init, T_final):
+        return self.joints_trajectory(t, theta, dh_l, T_init, T_final)
     
 if __name__== "__main__":
     obj = TrajectoryGenerator()

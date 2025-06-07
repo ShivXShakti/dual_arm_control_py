@@ -1,0 +1,36 @@
+ros2 topic pub /gripper_position_controller/joint_trajectory trajectory_msgs/JointTrajectory "  
+header:
+  stamp:
+    sec: 0
+    nanosec: 0
+  frame_id: ''
+joint_names:
+  - L_F1M1
+  - L_F1M2
+  - L_F1M3
+  - L_F1M4
+  - L_F2M1
+  - L_F2M2
+  - L_F2M3
+  - L_F2M4
+  - L_F3M1
+  - L_F3M2
+  - L_F3M3
+  - L_F3M4
+  - R_F1M1
+  - R_F1M2
+  - R_F1M3
+  - R_F1M4
+  - R_F2M1
+  - R_F2M2
+  - R_F2M3
+  - R_F2M4
+  - R_F3M1
+  - R_F3M2
+  - R_F3M3
+  - R_F3M4
+points:
+  - positions: [0.1, 0.2, 0.2, 0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.2, 0.2, 0.1]
+    time_from_start:
+      sec: 1
+      nanosec: 0"

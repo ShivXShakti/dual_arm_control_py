@@ -28,9 +28,11 @@ setup(
             'js_sub = dual_arm_control_py.js_sub:main',
             'gripper_control_effort = dual_arm_control_py.gripper_control_effort:main',
             'gripper_control_position = dual_arm_control_py.gripper_control_position:main',
+            'gripper_control_position_home = dual_arm_control_py.gripper_control_position_home:main',
             'gripper_hwc = dual_arm_control_py.gripper_hwc:main',
             'gripper_test = dual_arm_control_py.gripper_test:main',
             'timer_test = dual_arm_control_py.timer_test:main',
+            'pick_and_place_fpc = dual_arm_control_py.pick_and_place_fpc:main',
         ],
     },
 )
