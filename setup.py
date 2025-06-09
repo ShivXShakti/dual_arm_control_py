@@ -33,6 +33,7 @@ setup(
             'gripper_test = dual_arm_control_py.gripper_test:main',
             'timer_test = dual_arm_control_py.timer_test:main',
             'pick_and_place_fpc = dual_arm_control_py.pick_and_place_fpc:main',
+            'pick_and_place_hwc = dual_arm_control_py.pick_and_place_hwc:main',
         ],
     },
 )
