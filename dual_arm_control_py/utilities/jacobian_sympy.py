@@ -19,8 +19,21 @@ def dh_transform(a, alpha, d, theta):
 
 # Define your robot's DH parameters (example)
 #l1,l2,l3,l4,l5 = 0.10555,0.176,0.3,0.32,0.2251
+## right ae=rm
+"""dh_params = [
+    (0.0, sp.pi/2,       l[0], theta[0]+sp.pi/2),
+    (0.0, 0.0,         l[1], 0.0),
+    (0.0, sp.pi/2,       0.0, theta[1]),
+    (0.0, -sp.pi/2,   l[2], theta[2]),
+    (0.0, sp.pi/2,   0.0, theta[3]),
+    (0.0,  -sp.pi/2,   l[3], theta[4]),
+    (0.0,   sp.pi/2,      0.0, theta[5]),
+    (0.0,   -sp.pi/2,      l[4], theta[6])
+]"""
+
+## left arm
 dh_params = [
-    (0.0, sp.pi/2,       -l[0], theta[0]+sp.pi/2),
+    (0.0, -sp.pi/2,       -l[0], theta[0]+sp.pi/2),
     (0.0, 0.0,         -l[1], 0.0),
     (0.0, -sp.pi/2,       0.0, theta[1]),
     (0.0, sp.pi/2,   -l[2], theta[2]),

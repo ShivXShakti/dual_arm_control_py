@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray
 import math
-from dual_arm_control_py.traj_generator_ik_with_nullspaceconstraints import TrajectoryGenerator
+from dual_arm_control_py.traj_generator_ik_with_nullspaceconstraints_left import TrajectoryGenerator
 #from dual_arm_control_py.traj_generator_ik import TrajectoryGenerator
 from sensor_msgs.msg import JointState
 import numpy as np
@@ -48,6 +48,8 @@ class PositionCommander(Node):
         msg.data = [joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6], joints[7], joints[8], joints[9], joints[10], joints[11], joints[12], joints[13], 0.0, 0.0]
         self.t_counter += 1/self.sampling_frequency
         self.publisher_.publish(msg)
+        print(f"cmd: {msg.data}")
+        #self.get_logger().info(f"ordered:{[self.ordered_positions[7], self.ordered_positions[8], self.ordered_positions[9], self.ordered_positions[10], self.ordered_positions[11], self.ordered_positions[12], self.ordered_positions[13]]},      Joints:{joints}")
 
 def main(args=None):
     rclpy.init(args=args)
