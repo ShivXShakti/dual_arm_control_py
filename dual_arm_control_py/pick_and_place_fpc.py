@@ -39,26 +39,33 @@ class PositionCommander(Node):
         self.ordered_positions = None #[0.0 for _ in range(len(self.joint_names))]
         self.t_counter = 0.0
         self.ct = 0
-        self.obj_reach_t = 10
+        self.obj_reach_t = 20
         self.obj_put_t = 10
-        self.return_t = 10
+        self.goal_t = 10
+        self.goal_offset_t = 5
+        self.return_t = 20
         self.grasp_t = 2
-        self.grasp_f = False
+        self.traj_t = self.obj_reach_t +self.obj_put_t + self.goal_offset_t+ self.return_t+ self.grasp_t
+        self.grasp_fc = False
+        self.grasp_fo = False
         self.traj_execution_f = False
         l1,l2, l3, l4, l5 = [0.10555,0.176,0.3,0.32,0.2251]
         self.T_init = np.array([[0, -1, 0, 0], 
                                  [0, 0, -1, -l1-l2-l3-l4-l5], 
                                  [1, 0, 0, 0], 
                                  [0, 0, 0, 1]])
-        self.T_obj = np.array([[0, 0, 1, l4+l5], 
-                                 [0, -1, 0, -0.19], 
-                                 [1, 0, 0, -0.5], 
+        self.T_obj = np.array([[0, 0.866, 0.5, l4+l5], 
+                                 [0, -0.5, 0.866, -0.3], 
+                                 [1, 0, 0, -l3], 
                                  [0, 0, 0, 1]])
-        self.T_rot = np.array([[1, 0, 0, 0], 
-                                 [0, 0, -1, -l1-l2-l3-l4-l5], 
-                                 [0, 1, 0, 0], 
+        self.T_goal = np.array([[0, 0, 1, l4+l5+0.2], 
+                                 [0, -1, 0, -0.6], 
+                                 [1, 0, 0, -l3], 
                                  [0, 0, 0, 1]])
-
+        self.T_goal_offset = np.array([[0, 0, 1, l4+l5], 
+                                 [0, -1, 0, -0.6], 
+                                 [1, 0, 0, -l3], 
+                                 [0, 0, 0, 1]])
     def listener_callback(self, msg):
         name_to_position = dict(zip(msg.name, msg.position))
         self.ordered_positions = [name_to_position.get(self.joint_names[i], float('nan')) for i in range(len(self.joint_names))]
@@ -74,8 +81,8 @@ class PositionCommander(Node):
                 msg.data = [joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6], joints[7], joints[8], joints[9], joints[10], joints[11], joints[12], joints[13], 0.0, 0.0]
                 self.t_counter += 1/self.sampling_frequency
                 self.publisher_.publish(msg)
-            elif self.t_counter <= self.obj_reach_t + self.grasp_t:
-                if not self.grasp_f:
+            elif not self.grasp_fc:
+                if not self.grasp_fc:
                     traj = JointTrajectory()
                     traj.joint_names = ["L_F1M1", "L_F1M2", "L_F1M3", "L_F1M4", "L_F2M1", "L_F2M2", "L_F2M3", "L_F2M4", "L_F3M1", "L_F3M2", "L_F3M3", "L_F3M4", 
                             "R_F1M1", "R_F1M2", "R_F1M3", "R_F1M4", "R_F2M1", "R_F2M2", "R_F2M3", "R_F2M4", "R_F3M1", "R_F3M2", "R_F3M3", "R_F3M4"]  # Replace with your actual joint name
@@ -86,17 +93,36 @@ class PositionCommander(Node):
                     self.gripper_publisher_.publish(traj)
                     self.get_logger().info('Sent gripper position command')
                     time.sleep(self.grasp_t)
-                    self.grasp_f = True
-                self.t_counter += 1/self.sampling_frequency
-            elif self.t_counter >= (self.obj_reach_t+self.grasp_t) and self.t_counter < (self.obj_reach_t+self.grasp_t+self.obj_put_t):
+                    self.grasp_fc = True
+            elif self.t_counter < self.obj_reach_t+self.obj_put_t:
                 msg = Float64MultiArray()
-                joints = self.obj.get_joints(t=self.t_counter-(self.obj_reach_t+self.grasp_t), traj_time=self.obj_reach_t+self.grasp_t, theta=[self.ordered_positions[7], self.ordered_positions[8], self.ordered_positions[9], self.ordered_positions[10], self.ordered_positions[11], self.ordered_positions[12], self.ordered_positions[13]], dh_l=self.obj.dh_l, T_init=self.T_obj, T_final=self.T_rot)
+                joints = self.obj.get_joints(t=self.t_counter-self.obj_reach_t, traj_time=self.obj_put_t, theta=[self.ordered_positions[7], self.ordered_positions[8], self.ordered_positions[9], self.ordered_positions[10], self.ordered_positions[11], self.ordered_positions[12], self.ordered_positions[13]], dh_l=self.obj.dh_l, T_init=self.T_obj, T_final=self.T_goal)
                 msg.data = [joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6], joints[7], joints[8], joints[9], joints[10], joints[11], joints[12], joints[13], 0.0, 0.0]
                 self.t_counter += 1/self.sampling_frequency
                 self.publisher_.publish(msg)
-            elif not self.traj_execution_f and self.t_counter >= (self.obj_reach_t+self.grasp_t +self.obj_put_t) and self.t_counter <= (self.obj_reach_t+self.grasp_t+self.obj_put_t+self.return_t):
+            
+            elif not self.grasp_fo:
+                traj = JointTrajectory()
+                traj.joint_names = ["L_F1M1", "L_F1M2", "L_F1M3", "L_F1M4", "L_F2M1", "L_F2M2", "L_F2M3", "L_F2M4", "L_F3M1", "L_F3M2", "L_F3M3", "L_F3M4", 
+                        "R_F1M1", "R_F1M2", "R_F1M3", "R_F1M4", "R_F2M1", "R_F2M2", "R_F2M3", "R_F2M4", "R_F3M1", "R_F3M2", "R_F3M3", "R_F3M4"]  # Replace with your actual joint name
+                point = JointTrajectoryPoint()
+                point.positions = [0.9]*24
+                point.time_from_start.sec = 1
+                traj.points.append(point)
+                self.gripper_publisher_.publish(traj)
+                self.get_logger().info('Sent gripper position command: open')
+                time.sleep(self.grasp_t)
+                self.grasp_fo = True
+            elif self.t_counter < self.obj_reach_t+self.obj_put_t+self.goal_offset_t:
                 msg = Float64MultiArray()
-                joints = self.obj.get_joints(t=self.t_counter-(self.obj_reach_t+self.grasp_t +self.obj_put_t), traj_time=self.obj_reach_t+self.grasp_t +self.obj_put_t ,theta=[self.ordered_positions[7], self.ordered_positions[8], self.ordered_positions[9], self.ordered_positions[10], self.ordered_positions[11], self.ordered_positions[12], self.ordered_positions[13]], dh_l=self.obj.dh_l, T_init=self.T_rot, T_final= self.T_init)
+                joints = self.obj.get_joints(t=self.t_counter-(self.obj_reach_t+ self.obj_put_t), traj_time=self.goal_offset_t, theta=[self.ordered_positions[7], self.ordered_positions[8], self.ordered_positions[9], self.ordered_positions[10], self.ordered_positions[11], self.ordered_positions[12], self.ordered_positions[13]], dh_l=self.obj.dh_l, T_init=self.T_goal, T_final=self.T_goal_offset)
+                msg.data = [joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6], joints[7], joints[8], joints[9], joints[10], joints[11], joints[12], joints[13], 0.0, 0.0]
+                self.t_counter += 1/self.sampling_frequency
+                self.publisher_.publish(msg)
+
+            elif self.t_counter <= self.obj_reach_t+self.obj_put_t+self.goal_offset_t+self.return_t:
+                msg = Float64MultiArray()
+                joints = self.obj.get_joints(t=self.t_counter-(self.obj_reach_t+ self.obj_put_t+self.goal_offset_t), traj_time=self.return_t ,theta=[self.ordered_positions[7], self.ordered_positions[8], self.ordered_positions[9], self.ordered_positions[10], self.ordered_positions[11], self.ordered_positions[12], self.ordered_positions[13]], dh_l=self.obj.dh_l, T_init=self.T_goal_offset, T_final= self.T_init)
                 msg.data = [joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6], joints[7], joints[8], joints[9], joints[10], joints[11], joints[12], joints[13], 0.0, 0.0]
                 self.t_counter += 1/self.sampling_frequency
                 self.publisher_.publish(msg)

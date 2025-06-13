@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'fpc = dual_arm_control_py.fpc:main',
+            'fpc_main = dual_arm_control_py.fpc_main:main',
             'fpc_home = dual_arm_control_py.fpc_home:main',
             'home_fpc = dual_arm_control_py.home_fpc:main',
             'hwc = dual_arm_control_py.hwc:main',

@@ -31,9 +31,11 @@ class PositionCommander(Node):
         self.gripper_callback_status = False
         self.obj_reach_t = 20
         self.obj_put_t = 10
+        self.goal_t = 10
+        self.goal_offset_t = 5
         self.return_t = 20
         self.grasp_t = 2
-        self.traj_t = self.obj_reach_t + 2*self.grasp_t+self.return_t
+        self.traj_t = self.obj_reach_t +self.obj_put_t + self.goal_offset_t+ self.return_t+ self.grasp_t
         self.grasp_fc = False
         self.grasp_fo = False
         l1,l2, l3, l4, l5 = [0.10555,0.176,0.3,0.32,0.2251]
@@ -41,8 +43,16 @@ class PositionCommander(Node):
                                  [0, 0, -1, -l1-l2-l3-l4-l5], 
                                  [1, 0, 0, 0], 
                                  [0, 0, 0, 1]])
-        self.T_obj = np.array([[0, 0, 1, l4+l5], 
-                                 [0, -1, 0, -0.4], 
+        self.T_obj = np.array([[0, 0.866, 0.5, l4+l5], 
+                                 [0, -0.5, 0.866, -0.3], 
+                                 [1, 0, 0, -l3], 
+                                 [0, 0, 0, 1]])
+        self.T_goal = np.array([[0, 0, 1, l4+l5+0.1], 
+                                 [0, -1, 0, -0.6], 
+                                 [1, 0, 0, -l3], 
+                                 [0, 0, 0, 1]])
+        self.T_goal_offset = np.array([[0, 0, 1, l4+l5], 
+                                 [0, -1, 0, -0.6], 
                                  [1, 0, 0, -l3], 
                                  [0, 0, 0, 1]])
 
@@ -126,14 +136,14 @@ class PositionCommander(Node):
                         uicmd_msg.developer_command.command.append(dmsg)
                     self.t_counter += 1/self.sampling_frequency
                     self.pub.publish(uicmd_msg)
-                elif self.t_counter<self.traj_t+self.grasp_t and not self.grasp_fc:
+                elif not self.grasp_fc:
                     if not self.gripper_callback_status:
                         self.get_logger().info(f"Did not receive joint states of gripper... trying again!")
                         return
                     else:
-                        rangle = np.deg2rad([-2.5,2.9,84.3,33.7,
-                                            -2.9,13.1,87.2,38.1,
-                                            -1.4,-7,85.5,39.9])
+                        rangle = np.deg2rad([-2.9,3.1,86,35.5,
+                                    -2.8,11.6,87.7,37.7,
+                                    -1.5,-6.4,90,40.2])
                         #rangle = np.deg2rad(np.zeros((12,)))
                         force = [1]*12
                         velocity = [np.pi]*12
@@ -143,9 +153,9 @@ class PositionCommander(Node):
                         if not self.grasp_fc:
                             self.grasp_fc = True
                             self.get_logger().info(f"---------Gripper closed.-------")
-                elif self.t_counter < self.obj_reach_t+self.grasp_t+self.return_t:
+                elif self.t_counter < self.obj_reach_t+self.obj_put_t:
                     angle = self.joint_state_actual        
-                    target_angle = self.obj.get_joints(t=self.t_counter-self.obj_reach_t, traj_time=self.return_t, theta=angle[7:14], dh_l=self.obj.dh_l, T_init=self.T_obj, T_final=self.T_init)
+                    target_angle = self.obj.get_joints(t=self.t_counter-self.obj_reach_t, traj_time=self.obj_put_t, theta=angle[7:14], dh_l=self.obj.dh_l, T_init=self.T_obj, T_final=self.T_goal)
                     self.js_prev = target_angle
                     uicmd_msg  = darm_msgs.msg.UiCommand()
                     uicmd_msg.developer_command.enable = True
@@ -177,6 +187,40 @@ class PositionCommander(Node):
                         if not self.grasp_fo:
                             self.grasp_fo = True
                             self.get_logger().info(f"---------Gripper Opened.-------")
+                elif self.t_counter < self.obj_reach_t+self.obj_put_t+self.goal_offset_t:
+                    angle = self.joint_state_actual        
+                    target_angle = self.obj.get_joints(t=self.t_counter-(self.obj_reach_t+ self.obj_put_t), traj_time=self.goal_offset_t, theta=angle[7:14], dh_l=self.obj.dh_l, T_init=self.T_goal, T_final=self.T_goal_offset)
+                    self.js_prev = target_angle
+                    uicmd_msg  = darm_msgs.msg.UiCommand()
+                    uicmd_msg.developer_command.enable = True
+
+                    for i in range(16):
+                        dmsg=  darm_msgs.msg.JointCommand()
+                        if i<14:
+                            dmsg.position = target_angle[i]
+                        else:
+                            dmsg.position = 0.0
+                        dmsg.velocity = 0.0
+                        uicmd_msg.developer_command.command.append(dmsg)
+                    self.t_counter += 1/self.sampling_frequency
+                    self.pub.publish(uicmd_msg)
+                elif self.t_counter < self.obj_reach_t+self.obj_put_t+self.goal_offset_t+self.return_t:
+                    angle = self.joint_state_actual        
+                    target_angle = self.obj.get_joints(t=self.t_counter-(self.obj_reach_t+ self.obj_put_t+self.goal_offset_t), traj_time=self.return_t, theta=angle[7:14], dh_l=self.obj.dh_l, T_init=self.T_goal_offset, T_final=self.T_init)
+                    self.js_prev = target_angle
+                    uicmd_msg  = darm_msgs.msg.UiCommand()
+                    uicmd_msg.developer_command.enable = True
+
+                    for i in range(16):
+                        dmsg=  darm_msgs.msg.JointCommand()
+                        if i<14:
+                            dmsg.position = target_angle[i]
+                        else:
+                            dmsg.position = 0.0
+                        dmsg.velocity = 0.0
+                        uicmd_msg.developer_command.command.append(dmsg)
+                    self.t_counter += 1/self.sampling_frequency
+                    self.pub.publish(uicmd_msg)
             
                 """elif self.t_counter >= (self.obj_reach_t+self.grasp_t) and self.t_counter < (self.obj_reach_t+self.grasp_t+self.obj_put_t):
                     angle = self.joint_state_actual        

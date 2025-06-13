@@ -35,6 +35,12 @@ class TrajectoryGenerator():
         self.pose_a = None
         self.joint_states_prev = None #[3.14,-1.5699755717780695, 1.57,-1.569931101434043, -1.57, 1.57]
         self.joint_angles_both = None
+        self.k_ = np.array([[0.0005,0,0,0,0,0],
+                            [0,0.0011,0,0,0,0],
+                            [0,0,0.0044,0,0,0],
+                            [0,0,0,0.444,0,0],
+                            [0,0,0,0,0.444,0],
+                            [0,0,0,0,0,0.444]])
     
     #---------- Methods ---------------
     def rot2eul(self,rot_matrix, seq='XYZ'):
@@ -404,7 +410,7 @@ class TrajectoryGenerator():
         else:
             JJT_inv = np.linalg.pinv(JJT_) @ J.T 
 
-        pose_a, _ = self.FK(theta, dh_l)   # [position, orientation]
+        pose_a, _ = self.FK(theta, dh_l)   # [position, orientation] 
         if pose_a is None:
             logging.warning("Either didn't receive joint states or error in FK calculation->pose_actual:None")
             return
@@ -412,9 +418,9 @@ class TrajectoryGenerator():
         #### Null space condition
         q_dot_constraints = (self.mean_joints_limit[7:14].reshape(7,1)-np.array(theta).reshape(7,1))/self.max_min_dif_sq[7:14].reshape(7,1)
         if self.null_space:
-            joint_states_dot_inst = JJT_inv @ (np.array(posedot).reshape(6,1)) + (np.eye(7)-JJT_inv@J)@ q_dot_constraints
+            joint_states_dot_inst = JJT_inv @ (np.array(posedot).reshape(6,1)+ self.k_ @ (np.array(pose).reshape(6,1)-np.array(pose_a).reshape(6,1))) + (np.eye(7)-JJT_inv@J)@ q_dot_constraints
         else:
-            joint_states_dot_inst = JJT_inv @ (np.array(posedot).reshape(6,1))
+            joint_states_dot_inst = JJT_inv @ (np.array(posedot).reshape(6,1)+ self.k_ @ (np.array(pose).reshape(6,1)-np.array(pose_a).reshape(6,1)))
         if self.joint_states_prev is None:
             print("previous pose is none")
             self.joint_states_prev = theta
